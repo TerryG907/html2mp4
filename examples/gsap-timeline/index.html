@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<!-- A vertical short-video card written with GSAP, the way an AI agent usually writes it.
+     Nothing in here knows about the renderer except the size; the duration comes from the timeline. -->
+<meta name="html2mp4" content="size=1080x1920">
+<title>GSAP timeline</title>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<style>
+  html, body { margin: 0; width: 1080px; height: 1920px; overflow: hidden; }
+  body { background: #0e0f1a; font-family: "Avenir Next", "Helvetica Neue", Arial, sans-serif; color: #fff; }
+  .bg { position: absolute; inset: 0; background: linear-gradient(160deg, #1d1f3f 0%, #0e0f1a 60%); }
+  .blob { position: absolute; border-radius: 50%; filter: blur(80px); opacity: .55; }
+  .b1 { width: 700px; height: 700px; left: -200px; top: 120px; background: #ff4d6d; }
+  .b2 { width: 800px; height: 800px; right: -260px; top: 900px; background: #3a86ff; }
+  .line { position: absolute; left: 90px; right: 90px; font-weight: 800; line-height: 1; letter-spacing: -3px; white-space: nowrap; }
+  .l1 { top: 360px; font-size: 128px; }
+  .l2 { top: 520px; font-size: 128px; color: #ffd166; }
+  .char { display: inline-block; }
+  .card { position: absolute; left: 90px; right: 90px; top: 860px; height: 520px; border-radius: 48px;
+          background: #ffffff10; border: 2px solid #ffffff22; overflow: hidden; }
+  .card h2 { margin: 56px 60px 0; font-size: 54px; font-weight: 700; color: #cdd3ff; }
+  .num { position: absolute; left: 60px; bottom: 40px; font-size: 200px; font-weight: 800; letter-spacing: -6px; }
+  .unit { position: absolute; right: 64px; bottom: 80px; font-size: 64px; color: #9aa3d8; }
+  .bars { position: absolute; left: 60px; right: 60px; top: 150px; height: 100px; display: flex; gap: 18px; align-items: flex-end; }
+  .bars i { flex: 1; background: linear-gradient(#ffd166, #ff4d6d); border-radius: 12px 12px 4px 4px; transform-origin: bottom; }
+  .cta { position: absolute; left: 90px; right: 90px; top: 1500px; height: 150px; border-radius: 75px; background: #ffd166;
+         color: #0e0f1a; font-size: 60px; font-weight: 800; display: grid; place-items: center; }
+</style>
+</head>
+<body>
+  <div class="bg"></div>
+  <div class="blob b1"></div><div class="blob b2"></div>
+  <div class="line l1">Write HTML.</div>
+  <div class="line l2">Get an MP4.</div>
+  <div class="card">
+    <h2>frames rendered</h2>
+    <div class="bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="num">0</div><div class="unit">/ 210</div>
+  </div>
+  <div class="cta">npx html2mp4 render</div>
+<script>
+  // Split headline letters so they can be staggered.
+  document.querySelectorAll('.line').forEach((el) => {
+    el.innerHTML = [...el.textContent].map((c) => `<span class="char">${c === ' ' ? '&nbsp;' : c}</span>`).join('');
+  });
+  const heights = [40, 65, 52, 88, 70, 96, 80, 100];
+  const counter = { v: 0 };
+  const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+  tl.from('.blob', { scale: 0.4, opacity: 0, duration: 1.4, stagger: 0.2 }, 0)
+    .from('.l1 .char', { y: 140, opacity: 0, rotate: 10, duration: 0.7, stagger: 0.035 }, 0.2)
+    .from('.l2 .char', { y: 140, opacity: 0, rotate: 10, duration: 0.7, stagger: 0.035 }, 0.75)
+    .from('.card', { y: 160, opacity: 0, duration: 0.8 }, 1.4)
+    .from('.bars i', { scaleY: 0, duration: 0.6, stagger: 0.07, ease: 'back.out(2)' }, 1.8)
+    .to('.bars i', { height: (i) => heights[i] + '%', duration: 0 }, 0)
+    .to(counter, { v: 210, duration: 1.8, ease: 'power2.inOut', onUpdate: () => {
+      document.querySelector('.num').textContent = Math.round(counter.v);
+    } }, 1.9)
+    .from('.cta', { scale: 0.6, opacity: 0, duration: 0.7, ease: 'back.out(1.8)' }, 3.6)
+    .to('.cta', { scale: 1.05, duration: 0.35, yoyo: true, repeat: 3, ease: 'sine.inOut' }, 4.4)
+    .to('.blob', { x: (i) => (i ? -80 : 80), y: (i) => (i ? 60 : -60), duration: 6, ease: 'sine.inOut' }, 0);
+</script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+{
+  "name": "html2mp4",
+  "version": "0.1.0",
+  "description": "Render any HTML animation (CSS, GSAP, Canvas, Three.js) to MP4, deterministically, frame by frame. Zero edits to the page. Built for AI coding agents.",
+  "type": "module",
+  "bin": {
+    "html2mp4": "bin/html2mp4.js"
+  },
+  "exports": "./src/index.js",
+  "files": [
+    "bin",
+    "src",
+    "SKILL.md",
+    "llms.txt",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "test": "node test/run.js"
+  },
+  "keywords": [
+    "html",
+    "mp4",
+    "video",
+    "render",
+    "animation",
+    "gsap",
+    "canvas",
+    "threejs",
+    "puppeteer",
+    "ffmpeg",
+    "deterministic",
+    "ai-agent",
+    "claude-code",
+    "remotion-alternative"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "puppeteer-core": "^25.14.0"
+  }
+}

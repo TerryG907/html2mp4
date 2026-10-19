@@ -1,0 +1,5 @@
+node_modules/
+test/out/
+*.mp4
+!docs/*.mp4
+.DS_Store

@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Canvas particles</title>
+<style>
+  html, body { margin: 0; background: #05060d; overflow: hidden; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+  // A typical hand-written canvas loop: requestAnimationFrame, delta time from performance.now(),
+  // Math.random() particles, trails that accumulate across frames. html2mp4 makes all of that
+  // repeatable: the clock is virtual and Math.random is seeded.
+  window.__render = { duration: 6, width: 1920, height: 1080 };
+
+  const cv = document.getElementById('c');
+  const W = (cv.width = innerWidth), H = (cv.height = innerHeight);
+  const ctx = cv.getContext('2d');
+  // Trails accumulate on an offscreen layer; the title is drawn fresh on top every frame.
+  const trail = new OffscreenCanvas(W, H);
+  const tctx = trail.getContext('2d');
+  const N = 900;
+  const ps = Array.from({ length: N }, () => ({
+    x: Math.random() * W, y: Math.random() * H, v: 60 + Math.random() * 140, hue: 190 + Math.random() * 150, life: Math.random(),
+  }));
+  const field = (x, y, t) => Math.sin(x * 0.0021 + t * 0.35) * 1.6 + Math.cos(y * 0.0027 - t * 0.27) * 1.6;
+
+  function simulate(t, dt) {
+    tctx.fillStyle = 'rgba(5, 6, 13, 0.08)';
+    tctx.fillRect(0, 0, W, H);
+    tctx.globalCompositeOperation = 'lighter';
+    tctx.lineWidth = 2;
+    for (const p of ps) {
+      const a = field(p.x, p.y, t);
+      const nx = p.x + Math.cos(a) * p.v * dt, ny = p.y + Math.sin(a) * p.v * dt;
+      tctx.strokeStyle = `hsla(${p.hue}, 90%, 62%, 0.55)`;
+      tctx.beginPath(); tctx.moveTo(p.x, p.y); tctx.lineTo(nx, ny); tctx.stroke();
+      p.x = nx; p.y = ny; p.life -= dt * 0.15;
+      if (p.x < 0 || p.x > W || p.y < 0 || p.y > H || p.life < 0) {
+        p.x = Math.random() * W; p.y = Math.random() * H; p.life = 1;
+      }
+    }
+    tctx.globalCompositeOperation = 'source-over';
+  }
+
+  tctx.fillStyle = '#05060d';
+  tctx.fillRect(0, 0, W, H);
+  for (let i = 0; i < 45; i++) simulate(-1.5 + i / 30, 1 / 30); // pre-warm so frame 0 already has trails
+
+  let last = performance.now();
+  const start = last;
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    const t = (now - start) / 1000;
+    simulate(t, dt);
+    ctx.drawImage(trail, 0, 0);
+    const k = 0.5 - 0.5 * Math.cos(Math.PI * Math.min(1, t / 1.2)); // title settles over 1.2 s
+    ctx.save();
+    ctx.fillStyle = 'rgba(5, 6, 13, 0.6)';
+    ctx.fillRect(W / 2 - 430, H / 2 - 110, 860, 220);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.globalAlpha = 0.35 + 0.65 * k;
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '800 112px "Avenir Next", "Helvetica Neue", Arial, sans-serif';
+    ctx.fillText('Canvas 2D', W / 2, H / 2 - 12 + (1 - k) * 24);
+    ctx.font = '500 36px "Avenir Next", "Helvetica Neue", Arial, sans-serif';
+    ctx.fillStyle = '#a9b4ff';
+    ctx.fillText(`t = ${t.toFixed(2)} s   seeded Math.random`, W / 2, H / 2 + 70);
+    ctx.restore();
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+</script>
+</body>
+</html>

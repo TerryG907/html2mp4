@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<!-- No JavaScript at all. Size is declared here; duration is inferred from the animations. -->
+<meta name="html2mp4" content="size=1080x1080">
+<title>CSS keyframes</title>
+<style>
+  html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
+  body {
+    display: grid; place-items: center;
+    background: radial-gradient(circle at 30% 20%, #2b2d6e 0%, #121331 55%, #08091a 100%);
+    font-family: "Avenir Next", "Helvetica Neue", Arial, sans-serif; color: #f4f1ea;
+  }
+  .glow { /* infinite background drift: ignored when inferring the duration */
+    position: absolute; width: 900px; height: 900px; border-radius: 50%;
+    background: conic-gradient(from 0deg, #ff6b6b33, #ffd93d22, #6bcbff33, #ff6b6b33);
+    filter: blur(60px); animation: spin 9s linear infinite;
+  }
+  .stage { position: relative; text-align: center; }
+  .ring { width: 360px; height: 360px; margin: 0 auto 40px; display: block; }
+  .ring circle { fill: none; stroke-width: 18; stroke-linecap: round; }
+  .ring .track { stroke: #ffffff18; }
+  .ring .arc { stroke: url(#g); stroke-dasharray: 1005; stroke-dashoffset: 1005; transform: rotate(-90deg); transform-origin: 50% 50%;
+               animation: draw 1.6s cubic-bezier(.65,0,.35,1) .3s forwards; }
+  .ring .dot { fill: #ffd93d; stroke: none; transform-origin: 50% 50%; opacity: 0; animation: pop .5s cubic-bezier(.34,1.56,.64,1) 1.8s forwards; }
+  h1 { margin: 0; font-size: 150px; font-weight: 800; letter-spacing: -4px; line-height: 1; }
+  h1 span { display: inline-block; opacity: 0; transform: translateY(80px) rotate(8deg);
+            animation: rise .7s cubic-bezier(.22,1,.36,1) forwards; animation-delay: calc(1.0s + var(--i) * 70ms); }
+  p { margin: 28px 0 0; font-size: 44px; color: #cfd3ff; opacity: 0; animation: fade .8s ease 2.1s forwards; }
+  .bar { width: 520px; height: 14px; margin: 46px auto 0; border-radius: 7px; background: #ffffff1a; overflow: hidden; }
+  .bar i { display: block; height: 100%; width: 100%; border-radius: 7px; background: linear-gradient(90deg, #ff6b6b, #ffd93d, #6bcbff);
+           transform-origin: left; transform: scaleX(0); animation: grow 1.8s cubic-bezier(.65,0,.35,1) 2.4s forwards; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+  @keyframes pop { from { opacity: 0; transform: scale(0); } to { opacity: 1; transform: scale(1); } }
+  @keyframes rise { to { opacity: 1; transform: none; } }
+  @keyframes fade { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
+  @keyframes grow { to { transform: scaleX(1); } }
+</style>
+</head>
+<body>
+  <div class="glow"></div>
+  <div class="stage">
+    <svg class="ring" viewBox="0 0 360 360">
+      <defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="#ff6b6b"/><stop offset=".5" stop-color="#ffd93d"/><stop offset="1" stop-color="#6bcbff"/></linearGradient></defs>
+      <circle class="track" cx="180" cy="180" r="160"/>
+      <circle class="arc" cx="180" cy="180" r="160"/>
+      <circle class="dot" cx="180" cy="180" r="34"/>
+    </svg>
+    <h1><span style="--i:0">P</span><span style="--i:1">u</span><span style="--i:2">r</span><span style="--i:3">e</span>&nbsp;<span style="--i:5">C</span><span style="--i:6">S</span><span style="--i:7">S</span></h1>
+    <p>keyframes, rendered frame by frame</p>
+    <div class="bar"><i></i></div>
+  </div>
+</body>
+</html>

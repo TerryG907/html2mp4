@@ -1,0 +1,34 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+  html, body { margin: 0; background: #111; }
+  #a { position: absolute; top: 20px; width: 40px; height: 40px; background: #e44; animation: move 1s linear forwards; }
+  #b { position: absolute; top: 80px; left: 0; width: 40px; height: 40px; background: #4e4; transition: left 1s linear; }
+  #c { position: absolute; top: 140px; width: 40px; height: 40px; background: #44e; animation: move 1s linear infinite; animation-play-state: paused; }
+  #c.go { animation-play-state: running; }
+  @keyframes move { from { left: 0px; } to { left: 100px; } }
+</style></head>
+<body><div id="a"></div><div id="b"></div><div id="c"></div>
+<script>
+  window.__render = { duration: 2, width: 320, height: 240, fps: 30 };
+  window.log = [];
+  const L = (k) => log.push([k, Math.round(performance.now() * 1000) / 1000, Date.now() - Date.UTC(2026, 0, 1)]);
+  L('load');
+  setTimeout(() => L('t500'), 500);
+  let n = 0; const iv = setInterval(() => { L('iv'); if (++n === 3) clearInterval(iv); }, 100);
+  setTimeout(() => { document.getElementById('b').style.left = '100px'; L('b-start'); }, 200);
+  setTimeout(() => { document.getElementById('c').classList.add('go'); }, 1000);
+  document.getElementById('a').addEventListener('animationend', () => L('a-end'));
+  const w = document.body.appendChild(document.createElement('div'));
+  w.style.cssText = 'position:absolute;top:200px;width:10px;height:10px;background:#fff';
+  w.animate([{ left: '0px' }, { left: '300px' }], { duration: 300, fill: 'forwards' }).finished.then(() => L('waapi-fin'));
+  let frames = 0; requestAnimationFrame(function f(ts) { frames++; window.lastTs = ts; requestAnimationFrame(f); });
+  window.rnd = [Math.random(), Math.random()];
+  window.state = () => ({
+    a: getComputedStyle(document.getElementById('a')).left,
+    b: getComputedStyle(document.getElementById('b')).left,
+    c: getComputedStyle(document.getElementById('c')).left,
+    w: getComputedStyle(w).left,
+    now: performance.now(), frames, lastTs: window.lastTs,
+  });
+</script></body></html>

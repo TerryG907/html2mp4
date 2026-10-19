@@ -1,0 +1,33 @@
+# html2mp4
+
+> CLI that renders an HTML animation (CSS keyframes/transitions, Web Animations, GSAP, Canvas, Three.js, SVG SMIL) to MP4, WebM or GIF, deterministically, frame by frame, with no changes to the page. Headless Chrome with virtual time; frames piped to ffmpeg. Includes QC checks for the finished video.
+
+Requirements: Node 22.12+, Chrome or Chromium, ffmpeg. `npx html2mp4 doctor` reports what it found.
+
+## Commands
+
+- `npx html2mp4 render <page.html|folder|url> -o out.mp4 [--preset vertical|landscape|square|portrait] [--size WxH] [--duration s] [--fps n] [--audio file] [--qc] [--json]`
+- `npx html2mp4 snap <page> --at 0,1.5,3 --sheet sheet.png` writes stills and one contact sheet
+- `npx html2mp4 check <video.mp4> [--sheet sheet.png] [--transcode]` gates: format, first frame not blank, longest frozen stretch, loudness/true peak, SSIM after a platform-like re-encode
+- `npx html2mp4 render <page> --check-determinism` renders twice and compares every frame
+- Exit codes: 0 ok, 1 error, 2 usage, 3 a check failed
+
+## Page contract (all optional)
+
+- Size/length: `<meta name="html2mp4" content="size=1080x1920; duration=12; fps=30">` or `window.__render = { width, height, duration, fps }`. Without them: 1920x1080, 30 fps, duration = end of the finite CSS/GSAP animations + 0.5 s.
+- Virtual time covers requestAnimationFrame, performance.now, Date, setTimeout/setInterval, requestIdleCallback, CSS animations/transitions, element.animate(), SVG SMIL. Math.random is seeded (`--seed`).
+- Seek mode: `window.__render = { duration, seek: async (t) => {} }` (t in seconds, must be a pure function of t) renders in parallel with `--workers`.
+- `--wait-for "<js expression>"`: the video starts at the first frame where it is true.
+
+## Rules for pages
+
+- Lay out at the final pixel size (body width/height = video size, px units).
+- Make frame 0 a complete composition; hold the end state 0.5-1 s.
+- Load fonts and images up front; no mid-animation fetches.
+- No `<video>`/`<audio>` timing (pass sound with `--audio`), no iframes or Web Workers for animation, no busy-waiting on performance.now().
+
+## Docs
+
+- [README](README.md): full options, determinism guarantees, QC gates, limits
+- [SKILL.md](SKILL.md): agent workflow (write, snap and look, render, check) and page-writing rules
+- [Examples](examples/): css-keyframes, gsap-timeline, canvas-particles, threejs-scene

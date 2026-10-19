@@ -1,0 +1,21 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>html,body{margin:0;background:#101018}</style></head>
+<body><canvas id="c" width="640" height="360"></canvas>
+<script>
+  // Seek protocol (the shape the author's own engines use): a pure function of t, drawn on demand.
+  // Readiness is gated on a timer, so --wait-for has to pre-roll virtual time.
+  const ctx = document.getElementById('c').getContext('2d');
+  window.__render = {
+    duration: 2, width: 640, height: 360, fps: 30,
+    seek(t) {
+      ctx.fillStyle = '#101018'; ctx.fillRect(0, 0, 640, 360);
+      for (let i = 0; i < 12; i++) {
+        const a = t * 2 + i * 0.52;
+        ctx.fillStyle = `hsl(${i * 30}, 80%, 60%)`;
+        ctx.beginPath(); ctx.arc(320 + Math.cos(a) * (60 + i * 9), 180 + Math.sin(a) * (60 + i * 9), 10, 0, 7); ctx.fill();
+      }
+      ctx.fillStyle = '#fff'; ctx.font = '600 28px sans-serif'; ctx.fillText(`seek t=${t.toFixed(3)}`, 20, 40);
+    },
+  };
+  setTimeout(() => { window.__ready = true; }, 50);
+</script></body></html>
