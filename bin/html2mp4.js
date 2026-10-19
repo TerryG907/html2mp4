@@ -37,7 +37,7 @@ render options
                            and compare every frame
       --hashes <file>      write per-frame SHA-256 hashes as JSON
       --qc                 run \`check\` on the result
-      --gl swiftshader     software WebGL (same pixels on any machine, slower)
+      --gl swiftshader     software WebGL (no GPU differences; slower)
       --chrome <path>      Chrome/Chromium binary  (or CHROME_PATH)
       --ffmpeg <path>      ffmpeg binary  (or FFMPEG_PATH)
       --json               print a JSON summary on stdout (logs stay on stderr)

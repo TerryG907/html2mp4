@@ -78,7 +78,7 @@ A seek function must be a pure function of `t`: the same `t` must draw the same 
 | Message | Fix |
 |---|---|
 | `can't tell how long the video should be` | Add `--duration 8`, or the `<meta>` / `window.__render` declaration. |
-| `No Chrome or Chromium found` | `npx @puppeteer/browsers install chrome-headless-shell@stable`, or `--chrome /path`. |
+| `No Chrome or Chromium found` | `npx @puppeteer/browsers install chrome-headless-shell@stable --path ~/.cache/puppeteer` (Linux: add `--install-deps`, as root), or `--chrome /path`. |
 | `No ffmpeg found` | Install ffmpeg (`brew install ffmpeg`, `apt install ffmpeg`) or pass `--ffmpeg /path`. |
 | `timed out ... waiting for` | The `--wait-for` expression never became true, or `window.__render.ready` never resolved. |
 | `size ... must be even` | Use even width and height (yuv420p). |

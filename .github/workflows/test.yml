@@ -1,0 +1,49 @@
+name: test
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install ffmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ffmpeg
+
+      # The runner image already has Chrome's shared libraries (on a bare image, add --install-deps
+      # and run as root). It also has Google Chrome on PATH, which html2mp4 would pick first, so
+      # point CHROME_PATH at the headless shell.
+      - name: Install chrome-headless-shell
+        run: |
+          line=$(npx --yes @puppeteer/browsers install chrome-headless-shell@stable | tail -n1)
+          echo "$line"
+          chrome=${line#* }
+          test -x "$chrome"
+          echo "CHROME_PATH=$chrome" >> "$GITHUB_ENV"
+
+      - run: npm ci
+
+      - name: Doctor
+        run: node bin/html2mp4.js doctor
+
+      - run: npm test
+
+      - name: Upload contact sheets
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: contact-sheets-linux
+          path: test/out/*-sheet.png
+          if-no-files-found: warn

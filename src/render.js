@@ -23,6 +23,7 @@ const DEFAULT_SIZE = [1920, 1080];
 const EPOCH = Date.UTC(2026, 0, 1); // what `new Date()` returns at t=0 inside the page
 
 const sha256 = (b) => crypto.createHash('sha256').update(b).digest('hex');
+let sandboxUnavailable = false; // learned on the first launch, so later launches skip the failing attempt
 
 export function parseSize(s) {
   if (!s) return null;
@@ -90,14 +91,25 @@ class Session {
     ];
     if (this.opts.gl === 'swiftshader') args.push('--use-angle=swiftshader', '--enable-unsafe-swiftshader');
     else args.push('--enable-unsafe-swiftshader'); // allows WebGL on machines without a GPU (CI)
-    if (process.platform === 'linux' && process.getuid && process.getuid() === 0) args.push('--no-sandbox');
+    if (sandboxUnavailable || (process.platform === 'linux' && process.getuid && process.getuid() === 0)) args.push('--no-sandbox');
     if (process.env.HTML2MP4_CHROME_ARGS) args.push(...process.env.HTML2MP4_CHROME_ARGS.split(/\s+/).filter(Boolean));
-    this.browser = await puppeteer.launch({
+    const launch = () => puppeteer.launch({
       executablePath: this.chrome,
       headless: /headless[-_]shell/i.test(this.chrome) ? 'shell' : true,
       args,
       protocolTimeout: 0,
     });
+    try {
+      this.browser = await launch();
+    } catch (e) {
+      // Chrome's Linux sandbox needs user namespaces, which Docker (as non-root) and Ubuntu 23.10+
+      // (AppArmor) block. Chrome then exits with "No usable sandbox!".
+      if (process.platform !== 'linux' || args.includes('--no-sandbox') || !/No usable sandbox|SUID sandbox/i.test(e.message)) throw e;
+      this.warn("Chrome's sandbox is not available on this system (no user namespaces); running Chrome with --no-sandbox");
+      sandboxUnavailable = true;
+      args.push('--no-sandbox');
+      this.browser = await launch();
+    }
   }
 
   // A fresh browser process (used by the determinism check so nothing is shared with pass one).

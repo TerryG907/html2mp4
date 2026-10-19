@@ -19,13 +19,16 @@ function onPath(name) {
   return null;
 }
 
+// Browsers installed by puppeteer (~/.cache/puppeteer) or by `npx @puppeteer/browsers install`,
+// which downloads into the current directory unless given --path.
 function puppeteerCache() {
-  const root = process.env.PUPPETEER_CACHE_DIR || path.join(os.homedir(), '.cache', 'puppeteer');
+  const roots = [process.env.PUPPETEER_CACHE_DIR || path.join(os.homedir(), '.cache', 'puppeteer'), process.cwd()];
+  const newestFirst = (a, b) => b.localeCompare(a, 'en', { numeric: true });
   const out = [];
-  for (const kind of ['chrome-headless-shell', 'chrome']) {
+  for (const root of roots) for (const kind of ['chrome-headless-shell', 'chrome']) {
     const dir = path.join(root, kind);
     let versions = [];
-    try { versions = fs.readdirSync(dir).sort().reverse(); } catch { continue; }
+    try { versions = fs.readdirSync(dir).sort(newestFirst); } catch { continue; }
     for (const v of versions) {
       const base = path.join(dir, v);
       let subs = [];
@@ -75,7 +78,8 @@ export function findChrome(explicit) {
   } catch { /* puppeteer not installed */ }
   const err = new Error(
     'No Chrome or Chromium found.\n' +
-    '  Install one with:  npx @puppeteer/browsers install chrome-headless-shell@stable\n' +
+    '  Install one with:  npx @puppeteer/browsers install chrome-headless-shell@stable --path ~/.cache/puppeteer\n' +
+    '                     (Linux: add --install-deps, as root, for the shared libraries it needs)\n' +
     '  or point to it:    --chrome /path/to/chrome   (or CHROME_PATH=...)',
   );
   err.code = 'NO_CHROME';

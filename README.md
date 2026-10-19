@@ -15,6 +15,8 @@ Both GIFs above were rendered by html2mp4 from [examples/](examples/) (`-o demo.
 
 You need Node 22.12+, Chrome or Chromium, and ffmpeg. `npx html2mp4 doctor` tells you what it found.
 
+No Chrome (a server, CI, Docker)? `npx @puppeteer/browsers install chrome-headless-shell@stable --path ~/.cache/puppeteer` downloads one where html2mp4 finds it (without `--path` it goes into the current folder, which is also searched). On a bare Linux image, add `--install-deps` and run it as root to get the shared libraries Chrome needs. Where Chrome's sandbox can't run (Docker as non-root, Ubuntu 23.10+ AppArmor), html2mp4 starts it with `--no-sandbox` and says so.
+
 ```bash
 npx html2mp4 render page.html -o out.mp4
 ```
@@ -109,7 +111,7 @@ What html2mp4 does to get there: virtual clocks, seeded `Math.random`, a fixed `
 
 To see what differs, set `HTML2MP4_DUMP_DIR=some/folder`: both versions of every differing frame are saved there.
 
-WebGL output can differ between machines (different GPUs). `--gl swiftshader` uses software WebGL for the same pixels anywhere, slower.
+WebGL output can differ between machines (different GPUs). `--gl swiftshader` uses software WebGL, slower, which takes the GPU out of it: renders on the same OS repeat bit for bit, and macOS and Linux land within 1/255 of each other (measured on the Three.js example, Chrome 155 on arm64 for both: about 1% of pixels off by 1). Linux machines without a GPU (CI, Docker) use SwiftShader anyway.
 
 ## Quality checks
 
@@ -138,6 +140,7 @@ WebGL output can differ between machines (different GPUs). `--gl swiftshader` us
 - A page that busy-waits on `performance.now()` (`while (performance.now() < t) {}`) hangs, because time does not move inside a frame.
 - Speed: a virtual-time page renders at roughly 12-15 frames/s at 1080x1920 on an M-series Mac (each frame is a screenshot); seek pages scale with `--workers` (a 30 s 1080x1920 page rendered in 22 s on 6 pages).
 - Elements promoted to compositor layers and animated from JavaScript by libraries other than GSAP (e.g. `translate3d` set by hand) can show the 1-6/255 noise described above.
+- Fonts come from the machine unless the page ships them. The examples ask for Avenir Next, which only macOS has; on Linux they fall back to Liberation Sans (Arial-compatible), so they look plainer than the GIFs above. For the same typeface everywhere, load a font file with `@font-face` (each OS still rasterizes text slightly differently).
 
 ## Prior art
 
@@ -148,6 +151,12 @@ Remotion, HyperFrames, timecut, pagereel and others: see [PRIOR-ART.md](PRIOR-AR
 ```bash
 npm install
 npm test   # renders every example, checks QC and determinism (about 3 minutes)
+```
+
+CI ([.github/workflows/test.yml](.github/workflows/test.yml)) runs `npm test` on ubuntu-latest with chrome-headless-shell and keeps the contact sheets as a build artifact. The same suite in Docker, from a Mac or anywhere:
+
+```bash
+docker run --rm -v "$PWD":/src:ro node:22 bash -c 'cp -r /src /w && cd /w && rm -rf node_modules chrome-headless-shell && apt-get update -qq && apt-get install -yqq ffmpeg >/dev/null && npx -y @puppeteer/browsers install chrome-headless-shell@stable --install-deps && npm ci && npm test'
 ```
 
 MIT licensed.
